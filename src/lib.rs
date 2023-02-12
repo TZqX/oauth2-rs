@@ -1985,15 +1985,9 @@ fn endpoint_request<'a>(
         // Basic auth only makes sense when a client secret is provided. Otherwise, always pass the
         // client ID in the request body.
         (AuthType::BasicAuth, Some(secret)) => {
-            // Section 2.3.1 of RFC 6749 requires separately url-encoding the id and secret
-            // before using them as HTTP Basic auth username and password. Note that this is
-            // not standard for ordinary Basic auth, so curl won't do it for us.
-            let urlencoded_id: String =
-                form_urlencoded::byte_serialize(&client_id.as_bytes()).collect();
-            let urlencoded_secret: String =
-                form_urlencoded::byte_serialize(secret.secret().as_bytes()).collect();
+            // Don't URL encode because Amazon doesn't like it
             let b64_credential =
-                base64::encode(&format!("{}:{}", &urlencoded_id, urlencoded_secret));
+                base64::encode(&format!("{}:{}", client_id.as_str(), secret.secret().as_str()));
             headers.append(
                 AUTHORIZATION,
                 HeaderValue::from_str(&format!("Basic {}", &b64_credential)).unwrap(),
